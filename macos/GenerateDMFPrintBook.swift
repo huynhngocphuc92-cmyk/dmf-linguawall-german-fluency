@@ -61,7 +61,8 @@ let allSentences = try JSONDecoder().decode([SentenceItem].self, from: jsonData)
 try FileManager.default.createDirectory(atPath: outputDir, withIntermediateDirectories: true)
 
 // Standard ISO A5 Portrait Trim Size: 148mm × 210mm = 419.53pt × 595.28pt
-let pageWidth: CGFloat = 419.53
+// Kindle Paperwhite 5 Native 3:4 Screen Ratio: 446.46pt × 595.28pt (1236 × 1648)
+let pageWidth: CGFloat = isKindleMode ? 446.46 : 419.53
 let pageHeight: CGFloat = 595.28
 
 func font(_ name: String, size: CGFloat, bold: Bool = false, italic: Bool = false) -> NSFont {
@@ -131,19 +132,19 @@ struct PageGeometry {
 }
 
 // Mirror Margins for Duplex Book Binding (Recto = Odd = Right Page, Verso = Even = Left Page)
-// In Kindle Mode (--kindle): Symmetric 25pt margins so the frame stays locked in the center of the E-Ink screen
+// In Kindle Mode (--kindle): Edge-to-edge 8pt symmetric frame on 3:4 canvas so content is large and centered
 func getPageGeometry(pageNumber: Int) -> PageGeometry {
     let isOdd = (pageNumber % 2 == 1)
-    let gutterMargin: CGFloat = isKindleMode ? 25.0 : 31.0
-    let outsideMargin: CGFloat = isKindleMode ? 25.0 : 19.0
-    let topBottomMargin: CGFloat = 18.0
+    let gutterMargin: CGFloat = isKindleMode ? 8.0 : 31.0
+    let outsideMargin: CGFloat = isKindleMode ? 8.0 : 19.0
+    let topBottomMargin: CGFloat = isKindleMode ? 8.0 : 18.0
 
     let frameX = isOdd ? gutterMargin : outsideMargin
     let frameW = pageWidth - (gutterMargin + outsideMargin)
     let frameY = topBottomMargin
     let frameH = pageHeight - topBottomMargin * 2.0
 
-    let innerInset: CGFloat = 15.5
+    let innerInset: CGFloat = isKindleMode ? 12.0 : 15.5
     let padX = frameX + innerInset
     let contentW = frameW - innerInset * 2.0
 
@@ -339,38 +340,55 @@ func renderVolumePDF(spec: VolumeSpec) {
     // PAGE 1 (ODD / RECTO): DMF BRAND TITLE & COVER PAGE
     // ========================================================================
     let p1 = beginBookPage(pdfContext: pdfContext, pageNumber: 1)
-    var y: CGFloat = p1.frameY + 22.0
+    let kScale: CGFloat = isKindleMode ? 1.12 : 1.0
+    let p1TopY: CGFloat = p1.frameY + (isKindleMode ? 18.0 : 22.0)
+    let p1BottomY: CGFloat = p1.frameY + p1.frameH - 28.0
+
+    let bannerH: CGFloat = isKindleMode ? 46.0 : 42.0
+    let pillH: CGFloat = isKindleMode ? 24.0 : 22.0
+    let mainTitleFont = font("Times New Roman", size: 26.0 * kScale, bold: true)
+    let subTitleFont = font("Times New Roman", size: 13.5 * kScale, bold: true, italic: true)
+    let mainTitleH = measureTextHeight(spec.mainTitle, width: p1.contentW, font: mainTitleFont, lineSpacing: 3.0)
+    let subTitleH = measureTextHeight(spec.subTitle, width: p1.contentW, font: subTitleFont, lineSpacing: 2.5)
+    let descBoxH: CGFloat = isKindleMode ? 138.0 : 124.0
+    let stuBoxH: CGFloat = isKindleMode ? 114.0 : 104.0
+
+    let fixedContentH = bannerH + pillH + mainTitleH + 8.0 + subTitleH + 5.0 + descBoxH + stuBoxH
+    let totalSlack = max(40.0, (p1BottomY - p1TopY) - fixedContentH)
+    let p1Gap = totalSlack / 5.0
+
+    var y: CGFloat = p1TopY
 
     // DMF Top Brand Banner
     NSColor.black.setFill()
-    NSBezierPath.fill(NSRect(x: p1.padX, y: y, width: p1.contentW, height: 42.0))
+    NSBezierPath.fill(NSRect(x: p1.padX, y: y, width: p1.contentW, height: bannerH))
     drawTextBlock(
         "DMF",
         x: p1.padX,
         y: y + 4.0,
         width: p1.contentW,
-        font: font("Arial", size: 17.0, bold: true),
+        font: font("Arial", size: 17.0 * kScale, bold: true),
         color: .white,
         alignment: .center
     )
     drawTextBlock(
         "ĐÀO TẠO TIẾNG ĐỨC & GIAO TIẾP THỰC CHIẾN",
         x: p1.padX,
-        y: y + 24.0,
+        y: y + (isKindleMode ? 26.0 : 24.0),
         width: p1.contentW,
-        font: font("Arial", size: 8.5, bold: true),
+        font: font("Arial", size: 8.5 * kScale, bold: true),
         color: NSColor(calibratedWhite: 0.9, alpha: 1.0),
         alignment: .center
     )
-    y += 58.0
+    y += bannerH + p1Gap
 
     // Volume Stamp Pill
-    let pillW: CGFloat = 268.0
+    let pillW: CGFloat = isKindleMode ? 300.0 : 268.0
     let pillX = p1.padX + (p1.contentW - pillW) / 2.0
     NSColor(calibratedWhite: 0.93, alpha: 1.0).setFill()
-    NSBezierPath.fill(NSRect(x: pillX, y: y, width: pillW, height: 22.0))
+    NSBezierPath.fill(NSRect(x: pillX, y: y, width: pillW, height: pillH))
     NSColor.black.setStroke()
-    let pillPath = NSBezierPath(rect: NSRect(x: pillX, y: y, width: pillW, height: 22.0))
+    let pillPath = NSBezierPath(rect: NSRect(x: pillX, y: y, width: pillW, height: pillH))
     pillPath.lineWidth = 1.2
     pillPath.stroke()
     drawTextBlock(
@@ -378,10 +396,10 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: pillX,
         y: y + 5.0,
         width: pillW,
-        font: font("Arial", size: 9.5, bold: true),
+        font: font("Arial", size: 9.5 * kScale, bold: true),
         alignment: .center
     )
-    y += 34.0
+    y += pillH + p1Gap
 
     // Main Book Title
     y = drawTextBlock(
@@ -389,7 +407,7 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: p1.padX,
         y: y,
         width: p1.contentW,
-        font: font("Times New Roman", size: 26.0, bold: true),
+        font: mainTitleFont,
         lineSpacing: 3.0,
         alignment: .center
     )
@@ -400,21 +418,20 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: p1.padX,
         y: y,
         width: p1.contentW,
-        font: font("Times New Roman", size: 13.5, bold: true, italic: true),
+        font: subTitleFont,
         color: NSColor(calibratedWhite: 0.18, alpha: 1.0),
         lineSpacing: 2.5,
         alignment: .center
     )
-    y += 16.0
+    y += p1Gap
 
     // Editorial Double Rule
     NSColor.black.setFill()
     NSBezierPath.fill(NSRect(x: p1.padX, y: y, width: p1.contentW, height: 2.0))
     NSBezierPath.fill(NSRect(x: p1.padX, y: y + 4.0, width: p1.contentW, height: 0.7))
-    y += 16.0
+    y += 5.0 + p1Gap
 
     // Volume Overview Box
-    let descBoxH: CGFloat = 124.0
     NSColor(calibratedWhite: 0.96, alpha: 1.0).setFill()
     NSBezierPath.fill(NSRect(x: p1.padX, y: y, width: p1.contentW, height: descBoxH))
     NSColor.black.setStroke()
@@ -428,7 +445,7 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: p1.padX + 12.0,
         y: dy,
         width: p1.contentW - 24.0,
-        font: font("Arial", size: 9.5, bold: true)
+        font: font("Arial", size: 9.5 * kScale, bold: true)
     )
     dy += 5.0
     _ = drawTextBlock(
@@ -436,13 +453,12 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: p1.padX + 12.0,
         y: dy,
         width: p1.contentW - 24.0,
-        font: font("Times New Roman", size: 10.4),
-        lineSpacing: 2.5
+        font: font("Times New Roman", size: 10.4 * kScale),
+        lineSpacing: 2.6 * kScale
     )
-    y += descBoxH + 14.0
+    y += descBoxH + p1Gap
 
     // Student Ownership Box (For Classroom & Self-Study Handbooks)
-    let stuBoxH: CGFloat = 104.0
     NSColor.white.setFill()
     NSBezierPath.fill(NSRect(x: p1.padX, y: y, width: p1.contentW, height: stuBoxH))
     NSColor.black.setStroke()
@@ -456,14 +472,14 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: p1.padX + 12.0,
         y: sy,
         width: p1.contentW - 24.0,
-        font: font("Arial", size: 9.0, bold: true)
+        font: font("Arial", size: 9.0 * kScale, bold: true)
     )
-    sy += 8.0
+    sy += 8.0 * kScale
 
     let studentRows: [(label: String, lineStartX: CGFloat)] = [
-        ("• Họ và tên học viên:", 118.0),
-        ("• Lớp / Khóa đào tạo tại DMF:", 158.0),
-        ("• Mục tiêu hoàn thành (\(spec.packRangeLabel)):", 228.0)
+        ("• Họ và tên học viên:", 118.0 * kScale),
+        ("• Lớp / Khóa đào tạo tại DMF:", 158.0 * kScale),
+        ("• Mục tiêu hoàn thành (\(spec.packRangeLabel)):", 228.0 * kScale)
     ]
     for row in studentRows {
         drawTextBlock(
@@ -471,21 +487,21 @@ func renderVolumePDF(spec: VolumeSpec) {
             x: p1.padX + 12.0,
             y: sy,
             width: p1.contentW - 24.0,
-            font: font("Times New Roman", size: 10.2, bold: true)
+            font: font("Times New Roman", size: 10.2 * kScale, bold: true)
         )
         let lineX1 = p1.padX + 12.0 + row.lineStartX
         let lineX2 = p1.padX + p1.contentW - 14.0
         if lineX2 > lineX1 {
             NSColor(calibratedWhite: 0.35, alpha: 1.0).setStroke()
             let fillLine = NSBezierPath()
-            fillLine.move(to: NSPoint(x: lineX1, y: sy + 11.5))
-            fillLine.line(to: NSPoint(x: lineX2, y: sy + 11.5))
+            fillLine.move(to: NSPoint(x: lineX1, y: sy + 11.5 * kScale))
+            fillLine.line(to: NSPoint(x: lineX2, y: sy + 11.5 * kScale))
             fillLine.lineWidth = 0.8
             let dashPattern: [CGFloat] = [2.0, 2.0]
             fillLine.setLineDash(dashPattern, count: 2, phase: 0.0)
             fillLine.stroke()
         }
-        sy += 23.0
+        sy += 23.0 * kScale
     }
 
     drawSymmetricFooter(
@@ -500,20 +516,22 @@ func renderVolumePDF(spec: VolumeSpec) {
     // PAGE 2 (EVEN / VERSO): TABLE OF CONTENTS & STUDY GUIDE
     // ========================================================================
     let p2 = beginBookPage(pdfContext: pdfContext, pageNumber: 2)
-    var y2: CGFloat = p2.frameY + 16.0
+    let p2Scale: CGFloat = isKindleMode ? 1.10 : 1.0
+    var y2: CGFloat = p2.frameY + (isKindleMode ? 14.0 : 16.0)
 
+    let tocHeaderH: CGFloat = isKindleMode ? 27.0 : 25.0
     NSColor.black.setFill()
-    NSBezierPath.fill(NSRect(x: p2.padX, y: y2, width: p2.contentW, height: 25.0))
+    NSBezierPath.fill(NSRect(x: p2.padX, y: y2, width: p2.contentW, height: tocHeaderH))
     drawTextBlock(
         "MỤC LỤC CHI TIẾT & HƯỚNG DẪN LUYỆN PHẢN XẠ • DMF",
         x: p2.padX,
         y: y2 + 6.5,
         width: p2.contentW,
-        font: font("Arial", size: 9.5, bold: true),
+        font: font("Arial", size: 9.5 * p2Scale, bold: true),
         color: .white,
         alignment: .center
     )
-    y2 += 35.0
+    y2 += tocHeaderH + 10.0
 
     // Short titles for the 16-chapter 2-column grid so every cell stays strictly 1 line
     let shortCategoryTitles: [String: String] = [
@@ -535,11 +553,11 @@ func renderVolumePDF(spec: VolumeSpec) {
         "social_events": "Tiệc tùng, Lễ hội & Xã giao"
     ]
 
-    // Chapter Table of Contents (Exact total height = 248.0 pt for both 4-chap and 16-chap layouts)
+    // Chapter Table of Contents
     if spec.categories.count <= 4 {
-        let rowH: CGFloat = 56.0
-        let rowGap: CGFloat = 8.0
-        let badgeW: CGFloat = 56.0
+        let rowH: CGFloat = isKindleMode ? 60.0 : 56.0
+        let rowGap: CGFloat = isKindleMode ? 9.0 : 8.0
+        let badgeW: CGFloat = isKindleMode ? 62.0 : 56.0
         for (cIdx, catKey) in spec.categories.enumerated() {
             let catName = categoryTitles[catKey] ?? catKey
             let startPage = 3 + cIdx * 50
@@ -566,25 +584,25 @@ func renderVolumePDF(spec: VolumeSpec) {
                 x: p2.padX,
                 y: y2 + 6.0,
                 width: badgeW,
-                font: font("Arial", size: 6.8, bold: true),
+                font: font("Arial", size: 6.8 * p2Scale, bold: true),
                 color: NSColor(calibratedWhite: 0.85, alpha: 1.0),
                 alignment: .center
             )
             drawTextBlock(
                 String(format: "%02d", globalChapNum),
                 x: p2.padX,
-                y: y2 + 16.0,
+                y: y2 + 16.5,
                 width: badgeW,
-                font: font("Times New Roman", size: 19.0, bold: true),
+                font: font("Times New Roman", size: 19.0 * p2Scale, bold: true),
                 color: .white,
                 alignment: .center
             )
             drawTextBlock(
-                "TAB C\(cIdx + 1)",
+                isKindleMode ? "50 CÂU" : "TAB C\(cIdx + 1)",
                 x: p2.padX,
-                y: y2 + 41.0,
+                y: y2 + (isKindleMode ? 43.0 : 41.0),
                 width: badgeW,
-                font: font("Arial", size: 6.8, bold: true),
+                font: font("Arial", size: 6.8 * p2Scale, bold: true),
                 color: NSColor(calibratedWhite: 0.8, alpha: 1.0),
                 alignment: .center
             )
@@ -599,15 +617,15 @@ func renderVolumePDF(spec: VolumeSpec) {
                 x: rightX,
                 y: y2 + 6.5,
                 width: rightW,
-                font: font("Arial", size: 9.2, bold: true),
+                font: font("Arial", size: 9.2 * p2Scale, bold: true),
                 color: .black
             )
 
             // Subtle divider line under Chapter Name
             NSColor(calibratedWhite: 0.78, alpha: 1.0).setStroke()
             let divLine = NSBezierPath()
-            divLine.move(to: NSPoint(x: rightX, y: y2 + 21.0))
-            divLine.line(to: NSPoint(x: rightX + rightW, y: y2 + 21.0))
+            divLine.move(to: NSPoint(x: rightX, y: y2 + (isKindleMode ? 22.5 : 21.0)))
+            divLine.line(to: NSPoint(x: rightX + rightW, y: y2 + (isKindleMode ? 22.5 : 21.0)))
             divLine.lineWidth = 0.5
             divLine.stroke()
 
@@ -615,17 +633,17 @@ func renderVolumePDF(spec: VolumeSpec) {
             drawTextBlock(
                 "Phạm vi: Câu #\(String(format: "%03d", firstNum)) → #\(String(format: "%03d", lastNum)) (50 mẫu câu)",
                 x: rightX,
-                y: y2 + 24.5,
-                width: rightW - 72.0,
-                font: font("Times New Roman", size: 9.5, bold: true, italic: true),
+                y: y2 + (isKindleMode ? 26.0 : 24.5),
+                width: rightW - 76.0,
+                font: font("Times New Roman", size: 9.5 * p2Scale, bold: true, italic: true),
                 color: NSColor(calibratedWhite: 0.12, alpha: 1.0)
             )
             drawTextBlock(
                 "Trang \(startPage) – \(endPage)",
                 x: rightX,
-                y: y2 + 24.5,
+                y: y2 + (isKindleMode ? 26.0 : 24.5),
                 width: rightW,
-                font: font("Arial", size: 8.8, bold: true),
+                font: font("Arial", size: 8.8 * p2Scale, bold: true),
                 color: .black,
                 alignment: .right
             )
@@ -634,17 +652,17 @@ func renderVolumePDF(spec: VolumeSpec) {
             drawTextBlock(
                 "Lộ trình: Gói Tuần \(startPack) → Tuần \(endPack) (20 câu/tuần)",
                 x: rightX,
-                y: y2 + 39.5,
-                width: rightW - 65.0,
-                font: font("Times New Roman", size: 9.0),
+                y: y2 + (isKindleMode ? 42.0 : 39.5),
+                width: rightW - 70.0,
+                font: font("Times New Roman", size: 9.0 * p2Scale),
                 color: NSColor(calibratedWhite: 0.28, alpha: 1.0)
             )
             drawTextBlock(
                 "Cấp độ A1 → C1",
                 x: rightX,
-                y: y2 + 39.5,
+                y: y2 + (isKindleMode ? 42.0 : 39.5),
                 width: rightW,
-                font: font("Times New Roman", size: 8.8, bold: true),
+                font: font("Times New Roman", size: 8.8 * p2Scale, bold: true),
                 color: NSColor(calibratedWhite: 0.22, alpha: 1.0),
                 alignment: .right
             )
@@ -736,7 +754,7 @@ func renderVolumePDF(spec: VolumeSpec) {
     gPath.stroke()
 
     // Header bar inside Study Guide Box
-    let gHeaderH: CGFloat = 22.0
+    let gHeaderH: CGFloat = isKindleMode ? 24.0 : 22.0
     NSColor.black.setFill()
     NSBezierPath.fill(NSRect(x: p2.padX, y: y2, width: p2.contentW, height: gHeaderH))
     drawTextBlock(
@@ -744,7 +762,7 @@ func renderVolumePDF(spec: VolumeSpec) {
         x: p2.padX,
         y: y2 + 5.5,
         width: p2.contentW,
-        font: font("Arial", size: 8.6, bold: true),
+        font: font("Arial", size: 8.6 * p2Scale, bold: true),
         color: .white,
         alignment: .center
     )
@@ -774,7 +792,7 @@ func renderVolumePDF(spec: VolumeSpec) {
         scPath.stroke()
 
         // Step Badge on Left
-        let sBadgeW: CGFloat = 46.0
+        let sBadgeW: CGFloat = isKindleMode ? 52.0 : 46.0
         NSColor(calibratedWhite: 0.15, alpha: 1.0).setFill()
         NSBezierPath.fill(NSRect(x: cardX, y: sy, width: sBadgeW, height: stepCardH))
         drawTextBlock(
@@ -782,7 +800,7 @@ func renderVolumePDF(spec: VolumeSpec) {
             x: cardX,
             y: sy + (stepCardH - 10.0) / 2.0,
             width: sBadgeW,
-            font: font("Arial", size: 7.5, bold: true),
+            font: font("Arial", size: 7.5 * p2Scale, bold: true),
             color: .white,
             alignment: .center
         )
@@ -794,17 +812,17 @@ func renderVolumePDF(spec: VolumeSpec) {
             x: stX,
             y: sy + 3.5,
             width: stW,
-            font: font("Arial", size: 8.4, bold: true),
+            font: font("Arial", size: 8.4 * p2Scale, bold: true),
             color: .black
         )
         drawTextBlock(
             step.desc,
             x: stX,
-            y: sy + 15.0,
+            y: sy + (isKindleMode ? 16.5 : 15.0),
             width: stW,
-            font: font("Times New Roman", size: 8.6),
+            font: font("Times New Roman", size: 8.6 * p2Scale),
             color: NSColor(calibratedWhite: 0.15, alpha: 1.0),
-            lineSpacing: 1.2
+            lineSpacing: 1.2 * p2Scale
         )
     }
 
@@ -817,7 +835,7 @@ func renderVolumePDF(spec: VolumeSpec) {
     endBookPage(pdfContext: pdfContext)
 
     // ========================================================================
-    // PAGES 3..(2 + volSentences.count): SENTENCE CARDS (1 SENTENCE PER A5 PAGE)
+    // PAGES 3..(2 + volSentences.count): SENTENCE CARDS (1 SENTENCE PER PAGE)
     // ========================================================================
     for (idx, s) in volSentences.enumerated() {
         let pageNum = idx + 3
@@ -831,9 +849,9 @@ func renderVolumePDF(spec: VolumeSpec) {
             chapterShortCode: "C\(globalChapNum)"
         )
 
-        // Compute adaptive typography scale so even the longest C1 card fits cleanly inside A5 height
-        let usableTop = geo.frameY + 14.0
-        let usableBottom = geo.frameY + geo.frameH - 25.0
+        // Compute adaptive typography scale + even vertical distribution (space-between)
+        let usableTop = geo.frameY + (isKindleMode ? 12.0 : 14.0)
+        let usableBottom = geo.frameY + geo.frameH - 26.0
         let maxAvailableH = usableBottom - usableTop
 
         let ctxText = "Ngữ cảnh: \(s.context)"
@@ -848,38 +866,51 @@ func renderVolumePDF(spec: VolumeSpec) {
         let repSubText = s.reply != nil ? "   (\(s.reply!.en)  •  \(s.reply!.vi))" : ""
         let tipText = (s.tip ?? "").isEmpty ? "" : "Ghi chú bản xứ: \(s.tip!)"
 
-        var scale: CGFloat = 1.0
-        for candidateScale in stride(from: 1.0, through: 0.76, by: -0.04) {
-            let sc = CGFloat(candidateScale)
-            var estH: CGFloat = 28.0 + 10.0 // Header + double rule
-            estH += measureTextHeight(ctxText, width: geo.contentW - 12.0, font: font("Times New Roman", size: 10.8 * sc, bold: true, italic: true), lineSpacing: 1.8 * sc) + 10.0 * sc
-            estH += 16.0 * sc // DE badge
-            estH += measureTextHeight(deText, width: geo.contentW, font: font("Times New Roman", size: 19.5 * sc, bold: true), lineSpacing: 1.6 * sc) + 4.0 * sc
+        func computeExactHeight(for sc: CGFloat) -> CGFloat {
+            var h: CGFloat = 23.0 + 10.0 * sc // Header + double rule
+            h += measureTextHeight(ctxText, width: geo.contentW - 11.0, font: font("Times New Roman", size: 10.8 * sc, bold: true, italic: true), lineSpacing: 1.8 * sc) + 10.0 * sc
+            h += 17.5 * sc // DE badge
+            h += measureTextHeight(deText, width: geo.contentW, font: font("Times New Roman", size: 19.5 * sc, bold: true), lineSpacing: 1.6 * sc) + 4.0 * sc
             if !phonText.isEmpty {
-                estH += measureTextHeight(phonText, width: geo.contentW, font: font("Times New Roman", size: 10.2 * sc, bold: true, italic: true), lineSpacing: 1.5 * sc) + 7.0 * sc
+                h += measureTextHeight(phonText, width: geo.contentW, font: font("Times New Roman", size: 10.2 * sc, bold: true, italic: true), lineSpacing: 1.5 * sc) + 7.0 * sc
             }
             if !regText.isEmpty {
-                estH += measureTextHeight(regText, width: geo.contentW - 18.0, font: font("Times New Roman", size: 10.0 * sc, bold: true), lineSpacing: 2.5 * sc) + 12.0 * sc + 9.0 * sc
+                h += measureTextHeight(regText, width: geo.contentW - 18.0, font: font("Times New Roman", size: 10.0 * sc, bold: true), lineSpacing: 2.5 * sc) + 11.0 * sc + 9.0 * sc
             }
-            estH += 9.0 * sc + 15.0 * sc // hairline + EN badge
-            estH += measureTextHeight(enText, width: geo.contentW, font: font("Times New Roman", size: 14.5 * sc, bold: true), lineSpacing: 1.6 * sc) + 9.0 * sc
-            estH += 15.0 * sc // VI badge
-            estH += measureTextHeight(viText, width: geo.contentW, font: font("Times New Roman", size: 13.5 * sc, bold: true), lineSpacing: 1.6 * sc) + 9.0 * sc
-            estH += 9.0 * sc // hairline
+            h += 8.5 * sc // hairline after DE
+            h += 16.5 * sc // EN badge
+            h += measureTextHeight(enText, width: geo.contentW, font: font("Times New Roman", size: 14.5 * sc, bold: true), lineSpacing: 1.6 * sc) + 8.5 * sc
+            h += 16.5 * sc // VI badge
+            h += measureTextHeight(viText, width: geo.contentW, font: font("Times New Roman", size: 13.5 * sc, bold: true), lineSpacing: 1.6 * sc) + 9.0 * sc
+            h += 8.5 * sc // hairline after VI
             if !repDeText.isEmpty {
-                estH += 13.0 * sc
-                estH += measureTextHeight(repDeText, width: geo.contentW, font: font("Times New Roman", size: 12.2 * sc, bold: true), lineSpacing: 1.5 * sc) + 2.0 * sc
-                estH += measureTextHeight(repSubText, width: geo.contentW, font: font("Times New Roman", size: 10.0 * sc, bold: true, italic: true), lineSpacing: 1.5 * sc) + 9.0 * sc
+                h += measureTextHeight("HỘI THOẠI ĐÁP LẠI MẪU (MINI-DIALOGUE):", width: geo.contentW, font: font("Arial", size: 8.0 * sc, bold: true)) + 2.5 * sc
+                h += measureTextHeight(repDeText, width: geo.contentW, font: font("Times New Roman", size: 12.2 * sc, bold: true), lineSpacing: 1.5 * sc) + 2.0 * sc
+                h += measureTextHeight(repSubText, width: geo.contentW, font: font("Times New Roman", size: 10.0 * sc, bold: true, italic: true), lineSpacing: 1.5 * sc) + 9.0 * sc
             }
             if !tipText.isEmpty {
-                estH += measureTextHeight(tipText, width: geo.contentW - 18.0, font: font("Times New Roman", size: 10.0 * sc, bold: true), lineSpacing: 2.0 * sc) + 14.0 * sc
+                h += measureTextHeight(tipText, width: geo.contentW - 18.0, font: font("Times New Roman", size: 10.0 * sc, bold: true), lineSpacing: 2.0 * sc) + 12.0 * sc
             }
+            return h
+        }
+
+        let startScale: Double = isKindleMode ? 1.24 : 1.06
+        var scale: CGFloat = CGFloat(startScale)
+        var bestEstH: CGFloat = computeExactHeight(for: scale)
+        for candidateScale in stride(from: startScale, through: 0.76, by: -0.02) {
+            let sc = CGFloat(candidateScale)
+            let estH = computeExactHeight(for: sc)
+            scale = sc
+            bestEstH = estH
             if estH <= maxAvailableH {
-                scale = sc
                 break
             }
-            scale = sc
         }
+
+        // Distribute remaining vertical slack evenly across section gaps (space-between)
+        let gapCount = 4 + ((!repDeText.isEmpty || !tipText.isEmpty) ? 1 : 0) + ((!repDeText.isEmpty && !tipText.isEmpty) ? 1 : 0)
+        let slack = max(0.0, maxAvailableH - bestEstH)
+        let extraGap = slack / CGFloat(max(1, gapCount))
 
         var cy = usableTop
 
@@ -918,13 +949,13 @@ func renderVolumePDF(spec: VolumeSpec) {
         )
         cy += 23.0
 
-        // Double Header Rule
+        // Double Header Rule (Gap 1)
         NSColor.black.setFill()
         NSBezierPath.fill(NSRect(x: geo.padX, y: cy, width: geo.contentW, height: 1.8))
         NSBezierPath.fill(NSRect(x: geo.padX, y: cy + 3.2, width: geo.contentW, height: 0.6))
-        cy += 10.0 * scale
+        cy += 10.0 * scale + extraGap
 
-        // 2. Context Epigraph
+        // 2. Context Epigraph (Gap 2)
         let ctxFont = font("Times New Roman", size: 10.8 * scale, bold: true, italic: true)
         let ctxH = measureTextHeight(ctxText, width: geo.contentW - 11.0, font: ctxFont, lineSpacing: 1.8 * scale)
         NSColor.black.setFill()
@@ -937,7 +968,7 @@ func renderVolumePDF(spec: VolumeSpec) {
             font: ctxFont,
             lineSpacing: 1.8 * scale
         )
-        cy += 10.0 * scale
+        cy += 10.0 * scale + extraGap
 
         // 3. GERMAN SECTION
         NSColor.black.setFill()
@@ -1005,12 +1036,12 @@ func renderVolumePDF(spec: VolumeSpec) {
             cy += regH + 9.0 * scale
         }
 
-        // Hairline
+        // Hairline (Gap 3)
         NSColor(calibratedWhite: 0.48, alpha: 1.0).setFill()
         NSBezierPath.fill(NSRect(x: geo.padX, y: cy, width: geo.contentW, height: 0.8))
-        cy += 8.5 * scale
+        cy += 8.5 * scale + extraGap
 
-        // 4. ENGLISH
+        // 4. ENGLISH (Gap 4)
         NSColor.black.setStroke()
         let enRect = NSRect(x: geo.padX, y: cy, width: 50.0, height: 14.0)
         let enPath = NSBezierPath(rect: enRect)
@@ -1042,7 +1073,7 @@ func renderVolumePDF(spec: VolumeSpec) {
             font: font("Times New Roman", size: 14.5 * scale, bold: true),
             lineSpacing: 1.6 * scale
         )
-        cy += 8.5 * scale
+        cy += 8.5 * scale + extraGap
 
         // 5. VIETNAMESE
         let viRect = NSRect(x: geo.padX, y: cy, width: 60.0, height: 14.0)
@@ -1077,12 +1108,12 @@ func renderVolumePDF(spec: VolumeSpec) {
         )
         cy += 9.0 * scale
 
-        // Hairline
+        // Hairline (Gap 5)
         NSColor(calibratedWhite: 0.48, alpha: 1.0).setFill()
         NSBezierPath.fill(NSRect(x: geo.padX, y: cy, width: geo.contentW, height: 0.8))
-        cy += 8.5 * scale
+        cy += 8.5 * scale + ((!repDeText.isEmpty || !tipText.isEmpty) ? extraGap : 0.0)
 
-        // 6. MINI-DIALOGUE REPLY
+        // 6. MINI-DIALOGUE REPLY (Gap 6)
         if !repDeText.isEmpty {
             cy = drawTextBlock(
                 "HỘI THOẠI ĐÁP LẠI MẪU (MINI-DIALOGUE):",
@@ -1110,7 +1141,7 @@ func renderVolumePDF(spec: VolumeSpec) {
                 color: NSColor(calibratedWhite: 0.2, alpha: 1.0),
                 lineSpacing: 1.5 * scale
             )
-            cy += 9.0 * scale
+            cy += 9.0 * scale + (!tipText.isEmpty ? extraGap : 0.0)
         }
 
         // 7. NATIVE FOOTNOTE TIP
