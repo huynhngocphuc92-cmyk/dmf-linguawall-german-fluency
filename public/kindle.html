@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LinguaWall • Sổ tay Giao tiếp Kindle Paperwhite 5</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      background-color: #FFFFFF;
+      color: #000000;
+      font-family: "Bookerly", "Charter", "Iowan Old Style", "Georgia", "Times New Roman", serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .page-outer {
+      margin: 8px;
+      border: 3px solid #000000;
+      padding: 5px;
+    }
+    .page-inner {
+      border: 1px solid #444444;
+      padding: 18px 22px 16px 22px;
+    }
+    .running-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #000000;
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .running-header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 1px;
+      background: #444444;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stamp-level {
+      background: #000000;
+      color: #FFFFFF;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 4px 12px;
+      letter-spacing: 0.6px;
+    }
+    .cat-italic {
+      font-style: italic;
+      font-weight: 700;
+      font-size: 16px;
+      color: #111111;
+    }
+    .clock-meta {
+      font-size: 13px;
+      color: #333333;
+      text-align: right;
+    }
+    .epigraph-context {
+      border-left: 4px solid #000000;
+      padding-left: 14px;
+      font-style: italic;
+      font-size: 18px;
+      line-height: 1.42;
+      color: #111111;
+      margin-bottom: 18px;
+    }
+    .lang-section {
+      margin-bottom: 15px;
+    }
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    .tag-filled {
+      background: #000000;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 9px;
+      letter-spacing: 0.8px;
+    }
+    .tag-outline {
+      border: 2px solid #000000;
+      color: #000000;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 8px;
+      letter-spacing: 0.8px;
+    }
+    .tag-sub {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: #222222;
+      text-transform: uppercase;
+    }
+    .de-sentence {
+      font-size: 31px;
+      font-weight: 700;
+      line-height: 1.26;
+      color: #000000;
+      margin-bottom: 6px;
+    }
+    .phonetic {
+      font-style: italic;
+      font-size: 16px;
+      color: #333333;
+      margin-bottom: 10px;
+    }
+    .register-box {
+      background: #F3F3F3;
+      border: 1px solid #555555;
+      padding: 8px 12px;
+      font-size: 15.5px;
+      line-height: 1.45;
+      color: #111111;
+    }
+    .hairline {
+      height: 1px;
+      background: #888888;
+      margin: 14px 0;
+    }
+    .en-sentence {
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 1.32;
+      color: #000000;
+    }
+    .vi-sentence {
+      font-size: 21px;
+      line-height: 1.38;
+      color: #111111;
+    }
+    .dialogue-block {
+      margin: 12px 0;
+    }
+    .dialogue-de {
+      font-size: 20px;
+      font-weight: 700;
+      color: #000000;
+      margin-top: 4px;
+    }
+    .dialogue-sub {
+      font-style: italic;
+      font-size: 15.5px;
+      color: #333333;
+      margin-top: 3px;
+    }
+    .footnote-tip {
+      background: #EEEEEE;
+      border: 2px solid #000000;
+      padding: 10px 14px;
+      font-size: 15.5px;
+      line-height: 1.42;
+      color: #000000;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+    .page-footer {
+      border-top: 2px solid #000000;
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    .k-btn {
+      background: #FFFFFF;
+      color: #000000;
+      border: 2px solid #000000;
+      padding: 7px 13px;
+      font-family: "Charter", "Georgia", serif;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .k-btn-active {
+      background: #000000;
+      color: #FFFFFF;
+    }
+    .footer-meta {
+      font-family: "Charter", "Georgia", serif;
+      font-style: italic;
+      font-size: 13.5px;
+      color: #222222;
+      text-align: center;
+      width: 100%;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-outer">
+    <div class="page-inner">
+      <div>
+        <div class="running-header">
+          <div class="header-left">
+            <span class="stamp-level" id="k-level">CẤP ĐỘ B1</span>
+            <span class="cat-italic" id="k-cat">Giao tiếp — 99%</span>
+          </div>
+          <div class="clock-meta" id="k-clock">LinguaWall • E-Ink</div>
+        </div>
+
+        <div class="epigraph-context" id="k-context">
+          Ngữ cảnh: Sổ tay giao tiếp Đức – Anh – Việt
+        </div>
+
+        <div class="lang-section">
+          <div class="tag-row">
+            <span class="tag-filled">DEUTSCH</span>
+            <span class="tag-sub">TIẾNG ĐỨC GIAO TIẾP BẢN XỨ</span>
+          </div>
+          <div class="de-sentence" id="k-de">...</div>
+          <div class="phonetic" id="k-phonetic"></div>
+          <div class="register-box" id="k-register"></div>
+        </div>
+
+        <div class="hairline"></div>
+
+        <div class="lang-section">
+          <div class="tag-row">
+            <span class="tag-outline">ENGLISH</span>
+            <span class="tag-sub">TƯƠNG ĐƯƠNG TỰ NHIÊN</span>
+          </div>
+          <div class="en-sentence" id="k-en">...</div>
+        </div>
+
+        <div class="lang-section">
+          <div class="tag-row">
+            <span class="tag-outline">TIẾNG VIỆT</span>
+            <span class="tag-sub">NGHĨA GIAO TIẾP ĐỜI THỰC</span>
+          </div>
+          <div class="vi-sentence" id="k-vi">...</div>
+        </div>
+
+        <div class="hairline"></div>
+
+        <div class="dialogue-block">
+          <div class="tag-sub" style="font-family: 'Helvetica Neue', sans-serif; color:#000;">HỘI THOẠI ĐÁP LẠI MẪU (MINI-DIALOGUE):</div>
+          <div class="dialogue-de" id="k-reply-de"></div>
+          <div class="dialogue-sub" id="k-reply-sub"></div>
+        </div>
+
+        <div class="footnote-tip" id="k-tip"></div>
+      </div>
+
+      <div class="page-footer">
+        <button class="k-btn" onclick="changeSentence('prev')">« Trước</button>
+        <button class="k-btn" onclick="submitSrs('again')">🔥 Khó (2h)</button>
+        <button class="k-btn" onclick="submitSrs('good')">🤔 Tạm nhớ (3d)</button>
+        <button class="k-btn" onclick="submitSrs('easy')">⚡ Phản xạ ngay</button>
+        <button class="k-btn" id="btn-k-cycle" onclick="cycleLocalInterval()">🔄 Xoay: 30p</button>
+        <button class="k-btn" onclick="changeSentence('next')" style="margin-left: auto;">Trang tiếp »</button>
+        <div class="footer-meta" id="k-timer">Sổ tay Đức – Anh – Việt • Đồng bộ mượt không chớp màn hình</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*__INITIAL_KINDLE_BOOT__*/
+    var currentId = null;
+    var offlinePool = (window.__INITIAL_KINDLE_BOOT__ && window.__INITIAL_KINDLE_BOOT__.offlinePool) || [];
+    var offlineIndex = 0;
+    var localCycleMinutes = 30; // 30 -> 5 -> 1 -> 0 (off)
+    var localCycleTimer = null;
+
+    function formatTime() {
+      var d = new Date();
+      var hh = ('0' + d.getHours()).slice(-2);
+      var mm = ('0' + d.getMinutes()).slice(-2);
+      return hh + ':' + mm;
+    }
+
+    function renderSentenceCard(s, stateObj) {
+      if (!s) return;
+      currentId = s.id;
+
+      document.getElementById('k-level').textContent = 'CẤP ĐỘ ' + s.level;
+      document.getElementById('k-cat').textContent = (s.categoryLabel || '') + ' — ' + (s.frequency || '');
+      document.getElementById('k-clock').textContent = 'LinguaWall • ' + formatTime() + ' (#' + String(s.id || '').toUpperCase() + ')';
+      document.getElementById('k-context').textContent = 'Ngữ cảnh: ' + (s.context || '');
+      document.getElementById('k-de').textContent = '„' + (s.de || '') + '“';
+      document.getElementById('k-phonetic').textContent = s.de_phonetic ? ('Phát âm: [ ' + s.de_phonetic + ' ]') : '';
+
+      if (s.de_register) {
+        document.getElementById('k-register').innerHTML =
+          '<div><b>• Thân mật (du):</b> ' + (s.de_register.du || s.de) + '</div>' +
+          '<div><b>• Lịch sự (Sie):</b> ' + (s.de_register.sie || s.de) + '</div>';
+      }
+
+      document.getElementById('k-en').textContent = '“' + (s.en || '') + '”';
+      document.getElementById('k-vi').textContent = s.vi || '';
+
+      if (s.reply) {
+        document.getElementById('k-reply-de').textContent = '— „' + (s.reply.de || '') + '“';
+        document.getElementById('k-reply-sub').textContent = '(' + (s.reply.en || '') + '  •  ' + (s.reply.vi || '') + ')';
+      }
+
+      document.getElementById('k-tip').textContent = 'Ghi chú bản xứ: ' + (s.tip || '');
+
+      if (stateObj && stateObj.lastRotatedAt) {
+        var intervalMin = stateObj.rotationIntervalMinutes || 30;
+        var lastMs = new Date(stateObj.lastRotatedAt).getTime();
+        var nextMs = lastMs + intervalMin * 60 * 1000;
+        var remainMin = Math.max(1, Math.round((nextMs - Date.now()) / 60000));
+        document.getElementById('k-timer').textContent = 'Sổ tay E-Ink • Tự động đổi câu mới (Chu kỳ ' + (localCycleMinutes || intervalMin) + ' phút • Còn ~' + remainMin + 'p)';
+      }
+    }
+
+    function renderData(data) {
+      if (!data || !data.currentSentence) return;
+      renderSentenceCard(data.currentSentence, data.state);
+    }
+
+    function fallbackOfflineRotate(dir) {
+      if (!offlinePool || offlinePool.length === 0) return;
+      if (dir === 'prev') {
+        offlineIndex = (offlineIndex - 1 + offlinePool.length) % offlinePool.length;
+      } else {
+        offlineIndex = (offlineIndex + 1) % offlinePool.length;
+      }
+      renderSentenceCard(offlinePool[offlineIndex], null);
+      document.getElementById('k-timer').textContent = 'Chế độ Offline trên Kindle • Đang xoay bộ đệm (' + (offlineIndex + 1) + '/' + offlinePool.length + ')';
+    }
+
+    function fetchState() {
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/kindle/state?t=' + new Date().getTime(), true);
+        xhr.timeout = 6000;
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              try {
+                var res = JSON.parse(xhr.responseText);
+                renderData(res);
+              } catch (e) {}
+            }
+          }
+        };
+        xhr.send();
+      } catch (e) {}
+    }
+
+    function changeSentence(dir) {
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/rotate?lite=1', true);
+        xhr.timeout = 6000;
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              try {
+                var res = JSON.parse(xhr.responseText);
+                renderData(res);
+              } catch (e) {
+                fallbackOfflineRotate(dir);
+              }
+            } else {
+              fallbackOfflineRotate(dir);
+            }
+          }
+        };
+        xhr.onerror = function() { fallbackOfflineRotate(dir); };
+        xhr.ontimeout = function() { fallbackOfflineRotate(dir); };
+        xhr.send(JSON.stringify({ direction: dir, applyWallpaper: true, lite: true }));
+      } catch (e) {
+        fallbackOfflineRotate(dir);
+      }
+    }
+
+    function submitSrs(rating) {
+      if (!currentId) return;
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/srs-review?lite=1', true);
+        xhr.timeout = 6000;
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              try {
+                var res = JSON.parse(xhr.responseText);
+                renderData(res);
+              } catch (e) {
+                fallbackOfflineRotate('next');
+              }
+            } else {
+              fallbackOfflineRotate('next');
+            }
+          }
+        };
+        xhr.onerror = function() { fallbackOfflineRotate('next'); };
+        xhr.send(JSON.stringify({ sentenceId: currentId, rating: rating, autoRotate: true, lite: true }));
+      } catch (e) {
+        fallbackOfflineRotate('next');
+      }
+    }
+
+    function setupLocalCycleTimer() {
+      if (localCycleTimer) clearInterval(localCycleTimer);
+      var btn = document.getElementById('btn-k-cycle');
+      if (localCycleMinutes <= 0) {
+        btn.textContent = '🔄 Xoay: TẮT';
+        btn.className = 'k-btn';
+        return;
+      }
+      btn.textContent = '🔄 Xoay: ' + localCycleMinutes + 'p';
+      btn.className = localCycleMinutes < 30 ? 'k-btn k-btn-active' : 'k-btn';
+      localCycleTimer = setInterval(function() {
+        changeSentence('next');
+      }, localCycleMinutes * 60 * 1000);
+    }
+
+    function cycleLocalInterval() {
+      if (localCycleMinutes === 30) localCycleMinutes = 5;
+      else if (localCycleMinutes === 5) localCycleMinutes = 1;
+      else if (localCycleMinutes === 1) localCycleMinutes = 0;
+      else localCycleMinutes = 30;
+      setupLocalCycleTimer();
+      if (localCycleMinutes > 0) {
+        document.getElementById('k-timer').textContent = 'Đã đặt chu kỳ tự động lật trang mới trên Kindle: mỗi ' + localCycleMinutes + ' phút';
+      } else {
+        document.getElementById('k-timer').textContent = 'Đã tạm dừng tự động xoay vòng (Anh bấm Trang tiếp » để lật tay)';
+      }
+    }
+
+    if (window.__INITIAL_KINDLE_BOOT__ && window.__INITIAL_KINDLE_BOOT__.currentSentence) {
+      renderData(window.__INITIAL_KINDLE_BOOT__);
+    } else {
+      fetchState();
+    }
+    setupLocalCycleTimer();
+    setInterval(fetchState, 45000);
+
+    // Request Screen Wake Lock if supported by the embedded Chromium/WebKit browser
+    function requestKindleWakeLock() {
+      try {
+        if (navigator && navigator.wakeLock && navigator.wakeLock.request) {
+          navigator.wakeLock.request('screen').catch(function() {});
+        }
+      } catch (e) {}
+    }
+    requestKindleWakeLock();
+    document.addEventListener('click', requestKindleWakeLock);
+    document.addEventListener('touchstart', requestKindleWakeLock);
+  </script>
+</body>
+</html>

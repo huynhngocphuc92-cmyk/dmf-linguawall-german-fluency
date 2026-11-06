@@ -1,0 +1,16 @@
+{
+  "name": "linguawall-de-en-vi",
+  "version": "1.0.0",
+  "description": "Ứng dụng học giao tiếp Đức - Anh - Việt qua Hình nền macOS (30 phút/lần) & Kindle Paperwhite 5",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "wallpaper:now": "node scripts/rotate-now.js",
+    "install:autostart": "node scripts/install-launchd.js",
+    "build:macos": "bash scripts/build-macos-tools.sh"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.65",
+    "sharp": "^0.33.5"
+  }
+}

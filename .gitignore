@@ -1,0 +1,17 @@
+# Dependencies & Virtual Environments
+node_modules/
+.venv_tts/
+.venv/
+venv/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Runtime logs, audio cache & temporary wallpaper renders
+generated/audio-cache/
+generated/*.log
+generated/user-last-recording.wav
+generated/linguawall-*.png
+generated/AppIcon.iconset/

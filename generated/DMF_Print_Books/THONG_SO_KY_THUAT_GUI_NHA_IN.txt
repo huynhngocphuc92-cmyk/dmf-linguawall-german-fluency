@@ -1,0 +1,29 @@
+================================================================================
+PHIẾU THÔNG SỐ KỸ THUẬT IN ẤN (PREPRESS SPECIFICATION SHEET)
+Đơn vị phát hành: DMF — Đào Tạo Tiếng Đức & Giao Tiếp Thực Chiến
+Tên bộ sách: Sổ Tay Giao Tiếp Đức – Anh – Việt (Bộ 4 Tập • 800 Mẫu Câu A1–C1)
+================================================================================
+
+1. DANH SÁCH 4 FILE IN TRONG GÓI NÉN (.ZIP):
+   - Tập 1: DMF_So_Tay_Giao_Tiep_Tap_1_Nen_Tang_Sinh_Ton_A5.pdf     (204 trang)
+   - Tập 2: DMF_So_Tay_Giao_Tiep_Tap_2_Giao_Tiep_Xa_Hoi_A5.pdf      (204 trang)
+   - Tập 3: DMF_So_Tay_Giao_Tiep_Tap_3_Cong_So_Hanh_Chinh_A5.pdf    (204 trang)
+   - Tập 4: DMF_So_Tay_Giao_Tiep_Tap_4_Tinh_Huong_Dac_Thu_A5.pdf    (204 trang)
+
+2. QUY CÁCH CHẾ BẢN & IN RUỘT SÁCH:
+   - Khổ thành phẩm (Trim Size): ISO A5 Đứng (148 × 210 mm).
+   - Hình thức in: In 2 mặt trở đầu chuẩn (Duplex / Flip on Long Edge).
+   - Căn lề đối xứng (Mirror Margins): File PDF đã dàn sẵn lề gáy (Inside Gutter = 19 mm)
+     và lề mép ngoài (Outside Margin = 13.4 mm) đối xứng Chẵn – Lẻ.
+     -> LƯU Ý NHÀ IN: Xuất in đúng tỷ lệ 100% (Actual Size / Do Not Scale), KHÔNG dịch lề thêm.
+   - Hệ màu ruột: Đen trắng 1 kênh (100% Vector K=100% / Grayscale).
+   - Số trang mỗi quyển: Đúng 204 trang/quyển (= 102 tờ A5 hoặc 51 tờ A4 gập đôi, chia hết cho 4).
+
+3. CHẤT LIỆU GIẤY & GIA CÔNG KHUYẾN NGHỊ:
+   - Giấy ruột: Giấy Ford Kem (Cream / Ivory Uncoated) định lượng 80gsm hoặc 100gsm
+     (chống lóa mắt và hỗ trợ học viên ghi chú bằng bút bi/bút dạ quang).
+   - Giấy bìa ngoài (nếu làm bìa rời): Giấy Ivory hoặc Couche 300gsm, cán màng mờ (Matte).
+   - Gia công đóng quyển: Đóng gáy keo nhiệt (Perfect Binding) hoặc Khâu chỉ keo nhiệt.
+   - Xén thành phẩm: Xén 3 cạnh đúng khổ 148 × 210 mm để lộ thanh Tab chỉ mục đen (C1–C4)
+     sát mép phải của các trang lẻ.
+================================================================================

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinguaWall • Live Vector Desktop Wallpaper</title>
+  <style>
+    :root {
+      --desk-start: #E2DBD0;
+      --desk-end: #D5CBBF;
+      --page-bg: #F7F3EA;
+      --page-inset: #EFEAE0;
+      --border-outer: #181614;
+      --border-inner: #7A7267;
+      --ink: #141210;
+      --ink-secondary: #2E2A25;
+      --ink-muted: #5C554B;
+      --stamp-red: #8C2D19;
+      --font-serif: "Charter", "Bookerly", "Iowan Old Style", "Georgia", "Palatino", "Times New Roman", serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--desk-start), var(--desk-end));
+      font-family: var(--font-serif);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 44px 64px 56px 64px;
+    }
+
+    body.layout-right-card {
+      justify-content: flex-end;
+      align-items: center;
+      padding-right: 68px;
+    }
+
+    body.layout-center-stage {
+      justify-content: center;
+      align-items: center;
+    }
+
+    body.layout-bottom-dock {
+      justify-content: center;
+      align-items: flex-end;
+      padding-bottom: 78px;
+    }
+
+    /* Themes */
+    body.theme-kindle-warm-paper {
+      --desk-start: #E2DBD0;
+      --desk-end: #D4C9B8;
+      --page-bg: #FAF7F0;
+      --page-inset: #EFEAE0;
+      --border-outer: #141210;
+      --border-inner: #6E665C;
+      --ink: #11100E;
+      --ink-secondary: #26231F;
+      --ink-muted: #575047;
+      --stamp-red: #8C2D19;
+    }
+
+    body.theme-vintage-parchment {
+      --desk-start: #D4C7B2;
+      --desk-end: #C2B299;
+      --page-bg: #F4ECDC;
+      --page-inset: #E8DEC9;
+      --border-outer: #1C1610;
+      --border-inner: #736555;
+      --ink: #14100C;
+      --ink-secondary: #2E261E;
+      --ink-muted: #5C4E3E;
+      --stamp-red: #7F2716;
+    }
+
+    body.theme-dark-desk-warm-paper {
+      --desk-start: #1C1A17;
+      --desk-end: #11100E;
+      --page-bg: #FAF6EE;
+      --page-inset: #EFEAE0;
+      --border-outer: #141210;
+      --border-inner: #6E665C;
+      --ink: #11100E;
+      --ink-secondary: #26231F;
+      --ink-muted: #575047;
+      --stamp-red: #8C2D19;
+    }
+
+    body.theme-kindle-dark-eink {
+      --desk-start: #121211;
+      --desk-end: #0A0A09;
+      --page-bg: #1C1B19;
+      --page-inset: #262522;
+      --border-outer: #DFD7C8;
+      --border-inner: #787167;
+      --ink: #F5EFE4;
+      --ink-secondary: #DFD7C8;
+      --ink-muted: #9E968B;
+      --stamp-red: #E07A5F;
+    }
+
+    /* Book Page Container */
+    .book-page-outer {
+      width: min(1020px, 72vw);
+      background: var(--page-bg);
+      border: 3px solid var(--border-outer);
+      box-shadow:
+        7px 7px 0 var(--page-inset),
+        8.5px 8.5px 0 var(--border-outer),
+        0 24px 54px rgba(0, 0, 0, 0.22);
+      padding: 6px;
+    }
+
+    .book-page-inner {
+      border: 1.2px solid var(--border-inner);
+      padding: 28px 36px 24px 36px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .running-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--border-outer);
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .running-header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 1px;
+      background: var(--border-inner);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .stamp-level {
+      background: var(--ink);
+      color: var(--page-bg);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 800;
+      padding: 5px 13px;
+      letter-spacing: 0.8px;
+    }
+
+    .cat-line {
+      font-size: 16.5px;
+      font-style: italic;
+      font-weight: 700;
+      color: var(--ink-secondary);
+    }
+
+    .clock-meta {
+      font-size: 14px;
+      color: var(--ink-muted);
+    }
+
+    .epigraph-box {
+      border-left: 4.5px solid var(--stamp-red);
+      padding: 3px 0 3px 16px;
+      font-style: italic;
+      font-size: 17.5px;
+      line-height: 1.42;
+      color: var(--ink-secondary);
+      margin-bottom: 20px;
+    }
+
+    .lang-section {
+      margin-bottom: 16px;
+    }
+
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-family: var(--font-sans);
+    }
+
+    .tag-filled {
+      background: var(--ink);
+      color: var(--page-bg);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 3px 9px;
+      letter-spacing: 0.8px;
+    }
+
+    .tag-outline {
+      border: 1.8px solid var(--ink);
+      color: var(--ink);
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 2px 8px;
+      letter-spacing: 0.8px;
+    }
+
+    .tag-caption {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.7px;
+      color: var(--stamp-red);
+      text-transform: uppercase;
+    }
+
+    .de-hero {
+      font-size: 33px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .phonetic {
+      font-style: italic;
+      font-size: 16.5px;
+      color: var(--ink-muted);
+      margin-bottom: 12px;
+    }
+
+    .register-box {
+      background: var(--page-inset);
+      border: 1.2px solid var(--border-inner);
+      padding: 10px 16px;
+      font-size: 16px;
+      line-height: 1.48;
+      color: var(--ink-secondary);
+    }
+
+    .hairline {
+      height: 1px;
+      background: var(--border-inner);
+      opacity: 0.55;
+      margin: 15px 0;
+    }
+
+    .en-sentence {
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 1.32;
+      color: var(--ink);
+    }
+
+    .vi-sentence {
+      font-size: 21px;
+      line-height: 1.38;
+      color: var(--ink-secondary);
+    }
+
+    .dialogue-de {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: 4px;
+    }
+
+    .dialogue-sub {
+      font-style: italic;
+      font-size: 16px;
+      color: var(--ink-muted);
+      margin-top: 3px;
+    }
+
+    .footnote-box {
+      background: var(--page-inset);
+      border: 2px solid var(--border-outer);
+      padding: 12px 16px;
+      font-size: 16px;
+      line-height: 1.44;
+      color: var(--ink);
+      margin-top: 14px;
+    }
+
+    .page-footer {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-inner);
+      display: flex;
+      justify-content: space-between;
+      font-style: italic;
+      font-size: 13.5px;
+      color: var(--ink-muted);
+    }
+  </style>
+</head>
+<body class="theme-kindle-warm-paper layout-right-card">
+  <div class="book-page-outer">
+    <div class="book-page-inner">
+      <div>
+        <div class="running-header">
+          <div class="header-left">
+            <span class="stamp-level" id="w-level">CẤP ĐỘ B1</span>
+            <span class="cat-line" id="w-cat">Đời sống Hàng ngày — 95% • Rất phổ biến</span>
+          </div>
+          <div class="clock-meta" id="w-clock">LinguaWall • Tự đổi mỗi 30 phút</div>
+        </div>
+
+        <div class="epigraph-box" id="w-context">
+          Ngữ cảnh: ...
+        </div>
+
+        <div class="lang-section">
+          <div class="tag-row">
+            <span class="tag-filled">DEUTSCH</span>
+            <span class="tag-caption">TIẾNG ĐỨC GIAO TIẾP BẢN XỨ</span>
+          </div>
+          <div class="de-hero" id="w-de">...</div>
+          <div class="phonetic" id="w-phonetic"></div>
+          <div class="register-box">
+            <div><strong>• Thân mật (du):</strong> <span id="w-du"></span></div>
+            <div style="margin-top: 3px;"><strong>• Lịch sự (Sie):</strong> <span id="w-sie"></span></div>
+          </div>
+        </div>
+
+        <div class="hairline"></div>
+
+        <div class="lang-section">
+          <div class="tag-row">
+            <span class="tag-outline">ENGLISH</span>
+            <span class="tag-caption" style="color: var(--ink-muted);">TƯƠNG ĐƯƠNG TỰ NHIÊN</span>
+          </div>
+          <div class="en-sentence" id="w-en">...</div>
+        </div>
+
+        <div class="lang-section">
+          <div class="tag-row">
+            <span class="tag-outline">TIẾNG VIỆT</span>
+            <span class="tag-caption" style="color: var(--ink-muted);">NGHĨA GIAO TIẾP ĐỜI THỰC</span>
+          </div>
+          <div class="vi-sentence" id="w-vi">...</div>
+        </div>
+
+        <div class="hairline"></div>
+
+        <div>
+          <div class="tag-caption" style="font-family: var(--font-sans);">HỘI THOẠI ĐÁP LẠI MẪU (MINI-DIALOGUE):</div>
+          <div class="dialogue-de" id="w-reply-de"></div>
+          <div class="dialogue-sub" id="w-reply-sub"></div>
+        </div>
+
+        <div class="footnote-box" id="w-tip"></div>
+      </div>
+
+      <div class="page-footer">
+        <span>Sổ tay Giao tiếp Đức – Anh – Việt (A1–C1) • Bản Vector Retina Trực tiếp</span>
+        <span id="w-id">Mã thẻ: #S01</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function syncWallpaperState() {
+      try {
+        const res = await fetch('/api/state?t=' + Date.now());
+        const data = await res.json();
+        const s = data.currentSentence;
+        const st = data.state || {};
+        if (!s) return;
+
+        const theme = st.wallpaperTheme || 'kindle-warm-paper';
+        const layout = st.wallpaperLayout || 'right-card';
+        document.body.className = `theme-${theme} layout-${layout}`;
+
+        const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        const srsEntry = (st.srsData && st.srsData[s.id]) ? st.srsData[s.id] : null;
+        const srsTag = srsEntry ? ` • 🧠 ${srsEntry.nextLabel || 'Đang ôn SRS'}` : '';
+
+        document.getElementById('w-level').textContent = 'CẤP ĐỘ ' + s.level;
+        document.getElementById('w-cat').textContent = `${s.categoryLabel || 'Giao tiếp'} — ${s.frequency || ''}${srsTag}`;
+        document.getElementById('w-clock').textContent = `LinguaWall • ${nowStr} (${st.rotationIntervalMinutes || 30}p/lần) • ⌥Space Tra nhanh`;
+        document.getElementById('w-context').textContent = 'Ngữ cảnh: ' + s.context;
+
+        // Active Recall Mode: mask German sentence during first 8 minutes of rotation so user recalls actively from VI/EN!
+        const elapsedMs = st.lastRotatedAt ? (Date.now() - new Date(st.lastRotatedAt).getTime()) : 9999999;
+        const recallMaskActive = Boolean(st.activeRecallMode) && elapsedMs < 8 * 60 * 1000;
+        const remainRecallMin = Math.max(1, Math.ceil((8 * 60 * 1000 - elapsedMs) / 60000));
+
+        if (recallMaskActive) {
+          const words = String(s.de || '').trim().split(/\s+/);
+          const firstWord = words[0] || '';
+          document.getElementById('w-de').textContent = `🔒 [Thử phản xạ Tiếng Đức: „${firstWord} ...“ (${words.length} từ)]`;
+          document.getElementById('w-phonetic').textContent = `🧠 Hãy nhìn Nghĩa Tiếng Việt & Tiếng Anh bên dưới để tự nhẩm câu Tiếng Đức (Tự mở đáp án sau ${remainRecallMin} phút hoặc bấm ⌥Space)`;
+          document.getElementById('w-du').textContent = '••• (Đang ẩn để thử phản xạ chủ động)';
+          document.getElementById('w-sie').textContent = '••• (Đang ẩn để thử phản xạ chủ động)';
+        } else {
+          document.getElementById('w-de').textContent = '„' + s.de + '“';
+          document.getElementById('w-phonetic').textContent = s.de_phonetic ? `Phát âm: [ ${s.de_phonetic} ]` : '';
+          document.getElementById('w-du').textContent = s.de_register?.du || s.de;
+          document.getElementById('w-sie').textContent = s.de_register?.sie || s.de;
+        }
+
+        document.getElementById('w-en').textContent = '“' + s.en + '”';
+        document.getElementById('w-vi').textContent = s.vi;
+
+        if (s.reply) {
+          document.getElementById('w-reply-de').textContent = `— „${s.reply.de}“`;
+          document.getElementById('w-reply-sub').textContent = `(${s.reply.en}  •  ${s.reply.vi})`;
+        }
+
+        document.getElementById('w-tip').textContent = 'Ghi chú bản xứ: ' + (s.tip || '');
+        document.getElementById('w-id').textContent = 'Mã thẻ: #' + s.id.toUpperCase();
+      } catch (e) {}
+    }
+
+    syncWallpaperState();
+    setInterval(syncWallpaperState, 2500);
+  </script>
+</body>
+</html>
