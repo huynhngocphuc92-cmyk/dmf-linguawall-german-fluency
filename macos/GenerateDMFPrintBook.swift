@@ -2,6 +2,7 @@ import Cocoa
 import CoreText
 import CoreGraphics
 import Foundation
+import PDFKit
 
 struct SentenceRegister: Codable {
     let du: String
@@ -46,12 +47,13 @@ struct VolumeSpec {
 
 let args = CommandLine.arguments
 guard args.count >= 3 else {
-    fputs("Usage: generate-dmf-print-book <sentences.json> <output-directory>\n", stderr)
+    fputs("Usage: generate-dmf-print-book <sentences.json> <output-directory> [--kindle]\n", stderr)
     exit(1)
 }
 
 let sentencesPath = args[1]
 let outputDir = args[2]
+let isKindleMode = args.contains("--kindle")
 
 let jsonData = try Data(contentsOf: URL(fileURLWithPath: sentencesPath))
 let allSentences = try JSONDecoder().decode([SentenceItem].self, from: jsonData)
@@ -129,12 +131,11 @@ struct PageGeometry {
 }
 
 // Mirror Margins for Duplex Book Binding (Recto = Odd = Right Page, Verso = Even = Left Page)
-// Inside Gutter margin: 31pt (~11mm to outer frame, ~16.5mm to text)
-// Outside margin: 19pt (~6.7mm to outer frame, ~12.2mm to text)
+// In Kindle Mode (--kindle): Symmetric 25pt margins so the frame stays locked in the center of the E-Ink screen
 func getPageGeometry(pageNumber: Int) -> PageGeometry {
     let isOdd = (pageNumber % 2 == 1)
-    let gutterMargin: CGFloat = 31.0
-    let outsideMargin: CGFloat = 19.0
+    let gutterMargin: CGFloat = isKindleMode ? 25.0 : 31.0
+    let outsideMargin: CGFloat = isKindleMode ? 25.0 : 19.0
     let topBottomMargin: CGFloat = 18.0
 
     let frameX = isOdd ? gutterMargin : outsideMargin
@@ -178,7 +179,7 @@ func beginBookPage(
     NSColor.white.setFill()
     NSBezierPath.fill(NSRect(x: 0, y: 0, width: pageWidth, height: pageHeight))
 
-    // Double Book Frame (Shifted symmetrically away from the spine gutter)
+    // Double Book Frame (Shifted symmetrically away from the spine gutter in Print mode, centered in Kindle mode)
     NSColor.black.setStroke()
     let outerPath = NSBezierPath(rect: NSRect(x: geo.frameX, y: geo.frameY, width: geo.frameW, height: geo.frameH))
     outerPath.lineWidth = 2.0
@@ -194,8 +195,8 @@ func beginBookPage(
     innerPath.lineWidth = 0.7
     innerPath.stroke()
 
-    // Outer Edge Thumb-Index Tab on Odd (Right-hand) Pages for Instant Physical Chapter Flipping
-    if let slot = chapterSlot, geo.isOddPage, totalChapterSlots > 0 {
+    // Outer Edge Thumb-Index Tab on Odd (Right-hand) Pages for Instant Physical Chapter Flipping (Print Mode Only)
+    if !isKindleMode, let slot = chapterSlot, geo.isOddPage, totalChapterSlots > 0 {
         let usableStartY: CGFloat = 95.0
         let usableEndY: CGFloat = pageHeight - 95.0
         let slotHeight = (usableEndY - usableStartY) / CGFloat(totalChapterSlots)
@@ -236,8 +237,8 @@ func drawSymmetricFooter(
     let brandText = "DMF • Đào Tạo Tiếng Đức & Giao Tiếp Thực Chiến (\(volumeLabel))"
     let pageStr = "Trang \(geo.pageNumber)/\(totalPages)  •  \(cardCode)"
 
-    // In Duplex Book Design: Page number always sits on the OUTSIDE edge (Right on Odd pages, Left on Even pages)
-    if geo.isOddPage {
+    // In Duplex Book Design: Page number sits on OUTSIDE edge; in Kindle mode: always on RIGHT
+    if geo.isOddPage || isKindleMode {
         drawTextBlock(
             brandText,
             x: geo.padX,
@@ -302,20 +303,37 @@ func renderVolumePDF(spec: VolumeSpec) {
     // Page 1: Title Page
     // Page 2: Table of Contents & Study Guide
     // Pages 3..(2 + volSentences.count): Sentence Cards
-    // Remaining pages up to multiple of 4: Student Cornell Notes Pages
+    // Remaining pages up to multiple of 4 (Print Mode Only): Student Cornell Notes Pages
     let basePages = 2 + volSentences.count
-    let notesPagesCount = (basePages % 4 == 0) ? 2 : (4 - (basePages % 4))
+    let notesPagesCount = isKindleMode ? 0 : ((basePages % 4 == 0) ? 2 : (4 - (basePages % 4)))
     let totalPages = basePages + notesPagesCount
 
-    var mediaBox = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
-    let outPath = (outputDir as NSString).appendingPathComponent(spec.fileName)
-    let outURL = URL(fileURLWithPath: outPath)
-    guard let pdfContext = CGContext(outURL as CFURL, mediaBox: &mediaBox, nil) else {
-        fputs("Failed to create PDF context for \(spec.fileName)\n", stderr)
-        return
+    let volShortLabel = spec.volumeNumber > 0 ? "Tập \(spec.volumeNumber)" : "Trọn Bộ"
+    let actualFileName: String
+    if isKindleMode && spec.volumeNumber > 0 {
+        let firstNum = String(format: "%03d", spec.globalStartNumber)
+        let lastNum = String(format: "%03d", spec.globalStartNumber + volSentences.count - 1)
+        actualFileName = "DMF_So_Tay_Giao_Tiep_Tap_\(spec.volumeNumber)_Cau_\(firstNum)_\(lastNum).pdf"
+    } else {
+        actualFileName = spec.fileName
     }
 
-    let volShortLabel = spec.volumeNumber > 0 ? "Tập \(spec.volumeNumber)" : "Trọn Bộ"
+    var mediaBox = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
+    let outPath = (outputDir as NSString).appendingPathComponent(actualFileName)
+    let outURL = URL(fileURLWithPath: outPath)
+    let pdfTitle = spec.volumeNumber > 0
+        ? "DMF Sổ Tay Giao Tiếp Đức - Anh - Việt • Tập \(spec.volumeNumber) (Câu \(String(format: "%03d", spec.globalStartNumber))–\(String(format: "%03d", spec.globalStartNumber + volSentences.count - 1)))"
+        : "DMF Sổ Tay Giao Tiếp Đức - Anh - Việt • Trọn Bộ 800 Câu"
+    let pdfInfo: [CFString: Any] = [
+        kCGPDFContextTitle: pdfTitle,
+        kCGPDFContextAuthor: "DMF — Đào Tạo Tiếng Đức & Giao Tiếp Thực Chiến",
+        kCGPDFContextSubject: spec.subTitle,
+        kCGPDFContextCreator: "DMF Prepress & E-Book Engine"
+    ]
+    guard let pdfContext = CGContext(outURL as CFURL, mediaBox: &mediaBox, pdfInfo as CFDictionary) else {
+        fputs("Failed to create PDF context for \(actualFileName)\n", stderr)
+        return
+    }
 
     // ========================================================================
     // PAGE 1 (ODD / RECTO): DMF BRAND TITLE & COVER PAGE
@@ -473,7 +491,7 @@ func renderVolumePDF(spec: VolumeSpec) {
     drawSymmetricFooter(
         geo: p1,
         volumeLabel: volShortLabel,
-        cardCode: "Ấn bản In A5",
+        cardCode: isKindleMode ? "Kindle E-Book" : "Ấn bản In A5",
         totalPages: totalPages
     )
     endBookPage(pdfContext: pdfContext)
@@ -1179,7 +1197,7 @@ func renderVolumePDF(spec: VolumeSpec) {
     }
 
     pdfContext.closePDF()
-    print("OK: Generated DMF A5 Print Book [\(spec.fileName)] -> \(totalPages) pages (\(volSentences.count) sentences)")
+    print("OK: Generated DMF \(isKindleMode ? "Kindle E-Book" : "A5 Print Book") [\(actualFileName)] -> \(totalPages) pages (\(volSentences.count) sentences)")
 }
 
 let volumes: [VolumeSpec] = [
@@ -1246,5 +1264,6 @@ let volumes: [VolumeSpec] = [
 ]
 
 for v in volumes {
+    if isKindleMode && v.volumeNumber == 0 { continue }
     renderVolumePDF(spec: v)
 }
